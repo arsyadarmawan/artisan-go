@@ -12,7 +12,7 @@ func main() {
 		Usage: "A simple CLI application",
 		Commands: []*cli.Command{
 			modelCommand(),
-			//domainCommand(),
+			domainCommand(),
 		},
 	}
 

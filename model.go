@@ -22,10 +22,9 @@ func modelCommand() *cli.Command {
 			}
 			filename := name + ".go"
 			path := "./internal/app/ent/" + filename
-			fmt.Printf(path)
 			values := map[string]string{
-				"modelName":   pkg.ToPascalCase(name),
-				"packageName": "ent",
+				"{{modelName}}":   pkg.ToPascalCase(name),
+				"{{packageName}}": "ent",
 			}
 			result := pkg.ReplacePlaceholders(template.ModelTemplate, values)
 			err := WriteToFile(path, result)
@@ -33,21 +32,6 @@ func modelCommand() *cli.Command {
 				fmt.Println("Error writing to file:", err)
 				return nil
 			}
-			//var _, err = os.Stat(path)
-			//if os.IsNotExist(err) {
-			//	var file, err = os.Create(path)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	defer file.Close()
-			//	values := map[string]string{
-			//		"modelName":   pkg.ToPascalCase(name),
-			//		"packageName": "ent",
-			//	}
-			//
-			//	pkg.WriteFile(path, values, template.ModelTemplate)
-			//	fmt.Printf("Model %s is created \n", name)
-			//}
 			fmt.Printf("File written successfully:", filename)
 
 			return nil
