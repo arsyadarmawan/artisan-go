@@ -1,25 +1,12 @@
 package pkg
 
-import (
-	"fmt"
-	"os"
-)
+import "os"
 
-func WriteFile(path string, values map[string]string, template string) {
-	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
-	if isError(err) {
-		return
+func CheckFolderIsExist(domainPath string) error {
+	if _, err := os.Stat(domainPath); err != nil {
+		if os.IsNotExist(err) {
+			return err
+		}
 	}
-	defer file.Close()
-	content := ReplacePlaceholders(template, values)
-	fmt.Printf(content)
-	_, err = file.WriteString(content)
-	if isError(err) {
-		return
-	}
-
-	err = file.Sync()
-	if isError(err) {
-		return
-	}
+	return nil
 }
