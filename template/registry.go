@@ -7,5 +7,5 @@ const RegistryTemplate = "package web \n \n" +
 	"\n}\n" +
 	"func New{{domainName}}Registry(opt {{domainName}}HandlerOptions) *{{domainName}}HandlerRegistry" +
 	"{\n" +
-	"return &{{domainName}}HandlerRegistry{opt}" +
+	"\t return &{{domainName}}HandlerRegistry{opt}" +
 	"\n}"

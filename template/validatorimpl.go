@@ -1,6 +1,6 @@
 package template
 
-const UsecaseImplTemplate = "package usecaseimpl \n \n" +
+const ValidatorImplTemplate = "package validatorimpl \n \n" +
 	"type {{name}}ImplOptions struct{}\n" +
 	"type {{name}}Impl struct{\n" +
 	"\toptions {{name}}ImplOptions" +

@@ -8,16 +8,16 @@ import (
 	"mycli/template"
 )
 
-func modelCommand() *cli.Command {
+func validatorCommand() *cli.Command {
 	return &cli.Command{
-		Name:      template.ModelCommand,
+		Name:      template.ValidatorTemplate,
 		Aliases:   []string{"c"},
 		Usage:     "create entity model",
 		ArgsUsage: "[model]",
 		Action: func(c *cli.Context) error {
 			name := c.Args().Get(0)
 			if name == "" {
-				return errors.New("model name is required")
+				return errors.New("validator name is required")
 			}
 			filename := name + ".go"
 			modelPath := fmt.Sprintf(template.ModelDirectory, filename)

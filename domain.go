@@ -26,10 +26,30 @@ func domainCommand() *cli.Command {
 			if err := createDomainChildDirectory(name); err != nil {
 				return err
 			}
+
+			// create wire file
+			if err := createWire(name); err != nil {
+				return err
+			}
 			fmt.Printf("Domain created \n")
 			return nil
 		},
 	}
+}
+
+func createWire(dirName string) error {
+	appFolder := fmt.Sprintf(template.DomainName, dirName)
+	fileName := appFolder + "/wire.go"
+
+	values := map[string]string{
+		"{{packageName}}": dirName,
+	}
+	content := pkg.ReplacePlaceholders(template.WireTemplate, values)
+	if err := pkg.CreateFile(fileName, content); err != nil {
+		fmt.Println("Error writing to file:", err)
+		return err
+	}
+	return nil
 }
 
 func createParentDirectory(dirName string) error {
@@ -42,15 +62,15 @@ func createParentDirectory(dirName string) error {
 }
 
 func createDomainChildDirectory(dirName string) error {
-	parentfolder := fmt.Sprintf(template.DomainName, dirName)
-	if errCreateDelivery := createDelivery(parentfolder, dirName); errCreateDelivery != nil {
+	appFolder := fmt.Sprintf(template.DomainName, dirName)
+	if errCreateDelivery := createDelivery(appFolder, dirName); errCreateDelivery != nil {
 		return errCreateDelivery
 	}
-	if errCreateUsecase := createUsecase(parentfolder, dirName); errCreateUsecase != nil {
+	if errCreateUsecase := createUsecase(appFolder, dirName); errCreateUsecase != nil {
 		return errCreateUsecase
 	}
 
-	if errCreateRepository := createRepositoryFolder(parentfolder, dirName); errCreateRepository != nil {
+	if errCreateRepository := createRepositoryFolder(appFolder, dirName); errCreateRepository != nil {
 		return errCreateRepository
 	}
 	return nil
@@ -79,13 +99,12 @@ func createRepositoryFile(folderName string) error {
 		"{{structName}}": pkg.ToPascalCase(folderName),
 		"{{sourceFile}}": folderName,
 	}
-	path := fmt.Sprintf("./internal/app/%s/repository/", folderName)
-	fullPath := path + fileName
-	result := pkg.ReplacePlaceholders(template.RepositoryTemplate, values)
-	err := WriteToFile(fullPath, result)
-	if err != nil {
+	repositoryPath := fmt.Sprintf("./internal/app/%s/repository/", folderName)
+	fullPath := repositoryPath + fileName
+	content := pkg.ReplacePlaceholders(template.RepositoryTemplate, values)
+	if err := pkg.CreateFile(fullPath, content); err != nil {
 		fmt.Println("Error writing to file:", err)
-		return nil
+		return err
 	}
 	return nil
 }
@@ -108,47 +127,68 @@ func createFileRegistryName(structName string) error {
 		"{{domainName}}": pkg.ToPascalCase(structName),
 	}
 	path := fmt.Sprintf("./internal/app/%s/delivery/web/", structName)
-	fullPath := path + fileName
-	result := pkg.ReplacePlaceholders(template.RegistryTemplate, values)
-	err := WriteToFile(fullPath, result)
-	if err != nil {
+	registryPath := path + fileName
+	registryContent := pkg.ReplacePlaceholders(template.RegistryTemplate, values)
+	if err := pkg.CreateFile(registryPath, registryContent); err != nil {
 		fmt.Println("Error writing to file:", err)
-		return nil
+		return err
 	}
 	fmt.Printf("delivery is created\n")
 	return nil
 }
 
-func createUsecase(parentFolderName, folderName string) error {
-	usecaseMockPath := parentFolderName + "/usecase/usecasemock"
-	usecaseImplPath := parentFolderName + "/usecase/usecaseimpl"
-	if errUsecaseImpl := os.MkdirAll(usecaseImplPath, 0755); errUsecaseImpl != nil {
-		return errUsecaseImpl
-	}
-	if errusecaseMock := os.MkdirAll(usecaseMockPath, 0755); errusecaseMock != nil {
-		return errusecaseMock
+func createUsecase(parentFolderName, domainName string) error {
+	usecasePaths := []string{
+		"/usecase/usecasemock",
+		"/usecase/usecaseimpl",
+		"/usecase/usecasedecorator",
 	}
 
-	if errCreateFile := createFileUsecaseName(folderName); errCreateFile != nil {
+	for _, v := range usecasePaths {
+		path := parentFolderName + v
+		if errCreateFolder := os.MkdirAll(path, 0755); errCreateFolder != nil {
+			return errCreateFolder
+		}
+	}
+
+	if errCreateFile := createFileUsecaseName(domainName); errCreateFile != nil {
 		return errCreateFile
+	}
+
+	if errUsecaseImpl := createFileUsecaseImplName(domainName); errUsecaseImpl != nil {
+		return errUsecaseImpl
 	}
 	fmt.Printf("usecase is created\n")
 	return nil
 }
 
-func createFileUsecaseName(folderName string) error {
-	fileName := folderName + ".go"
+func createFileUsecaseName(file string) error {
+	fileName := file + ".go"
 	values := map[string]string{
-		"{{structName}}": pkg.ToPascalCase(folderName),
-		"{{sourceFile}}": folderName,
+		"{{structName}}": pkg.ToPascalCase(file),
+		"{{sourceFile}}": file,
 	}
-	path := fmt.Sprintf("./internal/app/%s/usecase/", folderName)
-	fullPath := path + fileName
-	result := pkg.ReplacePlaceholders(template.UsecaseTemplate, values)
-	err := WriteToFile(fullPath, result)
-	if err != nil {
+	path := fmt.Sprintf("./internal/app/%s/usecase/", file)
+	usecasePath := path + fileName
+	usecaseContent := pkg.ReplacePlaceholders(template.UsecaseTemplate, values)
+	if err := pkg.CreateFile(usecasePath, usecaseContent); err != nil {
 		fmt.Println("Error writing to file:", err)
-		return nil
+		return err
+	}
+	return nil
+}
+
+func createFileUsecaseImplName(file string) error {
+	fileName := file + ".go"
+	values := map[string]string{
+		"{{name}}": pkg.ToPascalCase(file),
+	}
+	usecaImplPath := fmt.Sprintf("./internal/app/%s/usecase/usecaseimpl/", file)
+	fullPath := usecaImplPath + fileName
+	usecaseImplContent := pkg.ReplacePlaceholders(template.UsecaseImplTemplate, values)
+	if err := pkg.CreateFile(fullPath, usecaseImplContent); err != nil {
+		fmt.Println("Error writing to file:", err)
+		return err
 	}
 	return nil
 }

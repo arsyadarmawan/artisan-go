@@ -20,7 +20,7 @@ func usecaseCommand() *cli.Command {
 				return errDomain
 			}
 
-			usecaseFolderPath := fmt.Sprintf(template.UsecaseFolder, domainName)
+			usecaseFolderPath := fmt.Sprintf(template.UsecaseDirectory, domainName)
 			usecaseName := c.String("usecase")
 			if errUsecase := checkFolderIsExist(domainName, usecaseFolderPath); errUsecase != nil {
 				return errUsecase
@@ -62,7 +62,7 @@ func createUsecaseFile(domainName, usecaseName string) error {
 		"{{structName}}": pkg.ToPascalCase(usecaseName),
 		"{{sourceFile}}": usecaseName,
 	}
-	usecasePath := fmt.Sprintf(template.UsecaseDetailName, domainName)
+	usecasePath := fmt.Sprintf(template.UsecaseDirectory, domainName)
 	fullPath := usecasePath + fileName
 	contentPath := pkg.ReplacePlaceholders(template.UsecaseTemplate, values)
 	if errCreateUsecase := pkg.CreateFile(fullPath, contentPath); errCreateUsecase != nil {

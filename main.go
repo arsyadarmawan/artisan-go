@@ -13,6 +13,7 @@ func main() {
 		Commands: []*cli.Command{
 			modelCommand(),
 			domainCommand(),
+			usecaseCommand(),
 		},
 	}
 
